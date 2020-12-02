@@ -25,6 +25,13 @@
 (require 'hy-mode nil t)
 (require 'inf-lisp)
 
+(defcustom lispy-hy-eval-method 'hy-shell
+  "REPL used for eval."
+  :type '(choice
+          (const :tag "HYSHELL" 'hy-shell)
+          (const :tag "COMINT" 'comint))
+  :group 'lispy)
+
 (defun lispy--hy-proc ()
   (let ((proc-name "hy"))
     (if (process-live-p proc-name)
@@ -76,7 +83,9 @@
 
 (defun lispy--eval-hy (str)
   "Eval STR as Hy code."
-  (let ((res (lispy--comint-eval str)))
+  (let ((res (if (eq lispy-hy-eval-method 'hy-shell)
+                 (hy-shell--redirect-send str 't)
+                 (lispy--comint-eval str))))
     (if (member res '("" "\n"))
         "(ok)"
       res)))
